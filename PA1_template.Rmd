@@ -41,16 +41,18 @@ avg_steps[which.max(avg_steps$steps),]
 
 Code to describe and show a strategy for imputing missing data
 ```{r,echo = TRUE}
-count <- sum(is.na(activity$steps))
+Imp_activity <- activity
+count <- sum(is.na(Imp_activity$steps))
 print("Number of NA values:")
 count
-activity$steps[is.na(activity$steps)] <- mean(activity$steps,na.rm = TRUE)
-count <- sum(is.na(activity$steps))
+Imp_activity$steps[is.na(Imp_activity$steps)] <- mean(Imp_activity$steps,na.rm = TRUE)
+count <- sum(is.na(Imp_activity$steps))
 print("Number of NA values after imputing:")
 count
 ```
+
 ```{r,echo = TRUE}
-total_steps_imput <- aggregate(steps~date, activity, sum, na.rm = TRUE)
+total_steps_imput <- aggregate(steps~date, Imp_activity, sum, na.rm = TRUE)
 hist(total_steps_imput$steps, breaks = 20, col = "red", xlab = "Total_steps",
      main = "Histogram of the total number of steps taken each day after imputing")
 ```
@@ -58,11 +60,33 @@ hist(total_steps_imput$steps, breaks = 20, col = "red", xlab = "Total_steps",
 Panel plot comparing the average number of steps taken per 5-minute interval across weekdays and weekends
 
 ```{r,echo = TRUE}
-activity$week <- ifelse (weekdays(activity$date,abbreviate = FALSE) %in% c("Saturday","Sunday"), 
+Imp_activity$week <- ifelse (weekdays(Imp_activity$date,abbreviate = FALSE) %in% c("Saturday","Sunday"), 
                          "Weekend", "Weekday")
-avg_steps_new <- aggregate(steps~interval+week, activity, mean)
+avg_steps_new <- aggregate(steps~interval+week, Imp_activity, mean)
 library(lattice)
 xyplot(avg_steps_new$steps~avg_steps_new$interval|avg_steps_new$week,type= "l",  layout = c(1,2), xlab = "Interval",
        ylab = "Avg_steps",
        main = "Average steps taken per 5-minute interval across weekdays and weekends")
 ```
+
+```{r,echo = TRUE}
+if(!file.exists("./Figure")){dir.create("./Figure")}
+png("./plot1.png")
+hist(total_steps$steps, breaks = 20, col = "red", xlab = "Total_Steps", 
+                         main = "Histogram of total number of steps each day")
+dev.off()
+
+png("./plot2.png")
+plot(avg_steps$interval,avg_steps$steps,type= "l")
+dev.off()
+
+png("./plot3.png")
+hist(total_steps_imput$steps, breaks = 20, col = "red", xlab = "Total_steps",
+     main = "Histogram of the total number of steps taken each day after imputing")
+dev.off()
+
+png("./plot4.png")
+xyplot(avg_steps_new$steps~avg_steps_new$interval|avg_steps_new$week,type= "l",  layout = c(1,2), xlab = "Interval",
+       ylab = "Avg_steps",
+       main = "Average steps taken per 5-minute interval across weekdays and weekends")
+dev.off()
