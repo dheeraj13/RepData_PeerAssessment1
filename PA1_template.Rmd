@@ -1,25 +1,68 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+### Read activity.csv dataset into activity
+
+```{r, echo=TRUE}
+activity <- read.csv("C:/Users/dheer/Desktop/Coursera/5. Reproducible Research/project/activity.csv", stringsAsFactors = FALSE)
+str(activity)
+```
 
 
-## Loading and preprocessing the data
+```{r, echo=TRUE}
+# date is converted to date dattype,
+activity$date <- as.Date(activity$date)
+#Total number of steps per day are calculated and histogram is plotted
+total_steps <- aggregate(steps~date, activity, sum, na.rm = TRUE)
+hist(total_steps$steps, breaks = 20, col = "red", xlab = "Total_Steps", 
+                         main = "Histogram of total number of steps each day")
+```
 
+Mean number of steps taken each day
+```{r, echo=TRUE}
+total_mean <- mean(total_steps$steps)
+total_mean
+```
 
+Mean number of steps taken each day
+```{r}
+total_median <- median(total_steps$steps)
+total_median
+```
 
-## What is mean total number of steps taken per day?
+Time series plot of the average number of steps taken
+```{r, echo=TRUE}
+avg_steps <- aggregate(steps~interval, activity, mean, na.rm = TRUE)
 
+plot(avg_steps$interval,avg_steps$steps,type= "l")
+```
 
+The 5-minute interval that, on average, contains the maximum number of steps
+```{r}
+avg_steps[which.max(avg_steps$steps),]
+```
 
-## What is the average daily activity pattern?
+Code to describe and show a strategy for imputing missing data
+```{r}
+count <- sum(is.na(activity$steps))
+print("Number of NA values:")
+count
+activity$steps[is.na(activity$steps)] <- mean(activity$steps,na.rm = TRUE)
+count <- sum(is.na(activity$steps))
+print("Number of NA values after imputing:")
+count
+```
+```{r}
+total_steps_imput <- aggregate(steps~date, activity, sum, na.rm = TRUE)
+hist(total_steps_imput$steps, breaks = 20, col = "red", xlab = "Total_steps",
+     main = "Histogram of the total number of steps taken each day after imputing")
+```
 
+Panel plot comparing the average number of steps taken per 5-minute interval across weekdays and weekends
 
-
-## Imputing missing values
-
-
-
-## Are there differences in activity patterns between weekdays and weekends?
+```{r}
+activity$week <- ifelse (weekdays(activity$date,abbreviate = FALSE) %in% c("Saturday","Sunday"), 
+                         "Weekend", "Weekday")
+avg_steps_new <- aggregate(steps~interval+week, activity, mean)
+library(lattice)
+xyplot(avg_steps_new$steps~avg_steps_new$interval|avg_steps_new$week,type= "l",  layout = c(1,2), xlab = "Interval",
+       ylab = "Avg_steps",
+       main = "Average steps taken per 5-minute interval across weekdays and weekends")
+```
